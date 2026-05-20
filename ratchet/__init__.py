@@ -27,7 +27,7 @@ The MODELS catalog and per-surface tier ladders are NOT owned by ratchet — eac
 surface composes those from the canonical registry and ships its own catalog.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 # ─── Tiers ──────────────────────────────────────────────────────────
 from ratchet.tiers import (
@@ -80,7 +80,7 @@ from ratchet.projection import (
 from ratchet.anchors import (
     CNNAnchor,
     LLMAnchor,
-    hw_to_anchor_tier_dtype,
+    hw_to_anchor_tier_precision,
     load_cnn_anchor,
     load_llm_anchor,
     overlay_llm_anchor,
@@ -130,7 +130,7 @@ __all__ = [
     "WorkloadPatternMultipliers", "apply_workload_pattern",
     # anchors
     "LLMAnchor", "CNNAnchor", "load_llm_anchor", "load_cnn_anchor",
-    "overlay_llm_anchor", "hw_to_anchor_tier_dtype",
+    "overlay_llm_anchor", "hw_to_anchor_tier_precision",
     # catalog
     "LLMModel", "BYTES_PER_PARAM", "GGUF_SIZE_GB", "ACTIVE_PARAMS",
     "lookup_model", "resolve_measurement_key",
