@@ -7,6 +7,38 @@
 
 ---
 
+## Amendments (folded into the v0.2.0 implementation)
+
+**AMENDMENT 1: 2026-05-19 — Quant-scheme dtype gating.** The Section 8
+`project_llm` dtype gate (Step 0b) originally keyed off `model.compute_dtype`.
+That wrongly returns `DtypeMismatch` for a Q4_K_M model (compute_dtype `fp16`)
+on INT8-only Neutron silicon, even though Q4_K_M runs there via the INT8 dequant
+path — and it makes the measured NPU Mid anchor unreachable. Resolution: a
+`quant_scheme_capability_key()` helper maps Q4_K_M/Q5_K_M/Q8_0 → `q4_km`,
+INT8_W8A8 → `int8`, FP8 → `fp8`, FP16/BF16 → `bf16/fp16`;
+`hw_supports_dtype_via_key()` gates on that key. The cross-class compute floor
+still reads raw-peak TOPS via the raw `compute_dtype` (capability ≠ which TOPS
+field to read). See `ratchet/precision/dtype_map.py` and ADR 015. Also resolves
+the field-name/units fix: projection uses `model.gguf_size_gb * 1e9`,
+`model.active_params_b * model.bytes_per_param`, and `2 * model.active_params_b`.
+
+**AMENDMENT 2: 2026-05-19 — Overlay takes the model.** Section 9's
+`overlay_llm_anchor` called an undefined `_dtype_for_model(result.model_key)`,
+but a `Projected` carries only a `model_key` string. Resolution: the signature
+becomes `overlay_llm_anchor(result, hw, model, catalog_to_spec_key, *,
+workload_multiplier=1.0)`; `_dtype_for_model` is removed; spec-cell routing keys
+off the model's quant-scheme capability key (consistent with AMENDMENT 1). See
+`ratchet/anchors/overlay.py` and ADR 011.
+
+Minor clarifications also applied: `measured_vision_overrides` is the three-level
+shape its docstring/registry require (Section 3's two-level annotation was
+inconsistent); `catalog/reference.py` exists (Section 2's tree omitted it);
+`LLMAnchor`/`CNNAnchor` live in `anchors/loader.py` per Section 9; carried ADRs
+keep their kebab-case filenames and the new ADRs 007–015 follow suit;
+`hw_with_memory` preserves the original stock bandwidth across re-clones.
+
+---
+
 ## Section 1 — Executive summary
 
 ### What's being built

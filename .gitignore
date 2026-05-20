@@ -20,3 +20,7 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Anchor secrets — KEY-not-VALUE discipline (ADR 011 / design section 9).
+# Values are credentials and must never enter the source tree.
+.streamlit/secrets.toml
