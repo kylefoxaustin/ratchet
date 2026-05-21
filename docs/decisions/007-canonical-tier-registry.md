@@ -37,6 +37,18 @@ principle: where ratchet and a production surface disagree on an *invariant
 silicon fact*, the production measurement wins and ratchet is corrected (the
 surfaces don't fork around the engine).
 
+**Amendment 6 (v0.2.4, 2026-05-21):** NPU i.MX 95 TDP corrected 8→10 W during
+the phase-3 keyhole-sizer recon. i.MX 95 is a tier that exists in **only one
+surface** (keyhole-sizer — it carries Kyle's NXP eIQ production measurement; PAI
+doesn't ladder it), and that surface had 10 W while ratchet (from the design
+doc) had 8 W. This refines the canonical rule: **where a tier exists in only one
+surface and that surface carries production measurements, that surface is
+canonical for it** — the single-surface case is decided by the surface that
+actually measures the silicon, not by cross-surface agreement. (Contrast
+Amendment 4's LP5-64 TDP, a cross-surface case: both PAI and keyhole had 10 W,
+and the reviewer deliberately set the canonical ladder to 10/15/20 W, so LP5-64
+stays 20 W. TDP is informational and not consumed by projection in either case.)
+
 ## Consequences
 
 - One definition of each silicon class; cross-surface drift becomes impossible

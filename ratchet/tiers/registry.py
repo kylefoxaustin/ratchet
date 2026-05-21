@@ -102,7 +102,7 @@ IMX95_MEASURED = Hardware(
     mem_bandwidth_gbs=25.6, mem_capacity_gb=16.0,
     mem_bus_width_bits=32, mem_type="LPDDR5", mem_data_rate_gtps=6.4,
     compute_efficiency=0.60, bandwidth_efficiency=0.70,
-    tdp_watts=8.0,
+    tdp_watts=10.0,
     tier_family="Neutron-32-LP5",
     compute_util_factor=0.19,
     llm_prefill_util_factor=0.10,
