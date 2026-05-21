@@ -62,10 +62,18 @@ def overlay_llm_anchor(
 
     new_decode = anchor.tokps * decode_mult
 
+    # Memory-upgrade clones BW-scale the anchor's decode (decode is BW-bound on
+    # active-param weight streaming); TTFT is held at stock (prefill is
+    # compute-bound). Stock tiers have ratio 1.0. (ADR 011 Amendment 5 — prior
+    # versions dropped the anchor on any upgrade, causing a measured→cross-class
+    # discontinuity where the first upgrade tier could read *lower* than stock.)
+    if hw.bw_projected and hw.stock_mem_bandwidth_gbs:
+        new_decode *= hw.mem_bandwidth_gbs / hw.stock_mem_bandwidth_gbs
+
     if ttft_mult != 1.0 and anchor.prefill_tokps > 0:
         new_ttft = (1024.0 / anchor.prefill_tokps) * ttft_mult
     else:
-        new_ttft = result.ttft_s  # preserve projection's TTFT (PAI pattern)
+        new_ttft = result.ttft_s  # preserve projection's TTFT (held at stock)
 
     decode_s = result.decode_tokens / max(new_decode, 1e-6)
     total_s = new_ttft + decode_s
@@ -81,5 +89,6 @@ def overlay_llm_anchor(
             "measured_date": anchor.measured_date,
             "spec_tier_precision": f"{tier}_{precision}",
             "spec_model_key": spec_key,
+            "bw_projected": hw.bw_projected,
         },
     )

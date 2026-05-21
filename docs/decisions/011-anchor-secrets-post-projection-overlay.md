@@ -62,6 +62,21 @@ by real usage, not speculative. Corrections folded into ratchet v0.2.1:
   overlay plain dicts; migrating from dict-subscript to attribute access on the
   result type is part of the retrofit's value, not unexpected friction.
 
+**AMENDMENT 5 (2026-05-21):** memory-upgrade clones now BW-scale the anchor's
+decode instead of losing it. Found during the phase-2 PAI visual smoke: a
+privately-anchored cell (e.g. NPU High × Qwen2.5-32B-dense) showed its measured
+decode at stock, but *any* memory upgrade dropped the anchor entirely and fell
+to cross-class first-principles — a different, lower baseline, so the first
+upgrade tier could read *lower* than stock (a measured→cross-class discontinuity,
+not broken scaling). This was pre-existing surface behavior (both sizers' overlay
+helpers guarded out memory variants). Fix: `hw_to_anchor_tier_precision` no
+longer returns None for `bw_projected` — it routes via the stock identity — and
+`overlay_llm_anchor` BW-scales `anchor.tokps` by
+`mem_bandwidth_gbs / stock_mem_bandwidth_gbs` (holding TTFT at stock, since
+prefill is compute-bound). Same physics as the public same-class anchor path.
+The surfaces' own overlay helpers carry the mirror fix (PAI v1.1.0; keyhole at
+phase 3).
+
 ## Consequences
 
 - Public/private separation is structural, not procedural. The open-source

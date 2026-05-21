@@ -105,9 +105,10 @@ class TestSpecRouting:
     def test_reference_tier_none(self):
         assert hw_to_anchor_tier_precision(RTX_5090_REFERENCE, "fp8") is None
 
-    def test_memory_clone_none(self):
+    def test_memory_clone_routes_to_stock(self):
+        # Amendment 5: clones route via stock identity (the overlay BW-scales).
         clone = hw_with_memory(NPU_MID, "LPDDR6", 14.0)
-        assert hw_to_anchor_tier_precision(clone, "q4_km") is None
+        assert hw_to_anchor_tier_precision(clone, "q4_km") == ("mid", "int8")
 
 
 # ─── Overlay: decode_mult / ttft_mult ───────────────────────────────
@@ -181,8 +182,23 @@ class TestOverlay:
         assert overlay_llm_anchor(r, NPU_MID, QWEN3_30B_A3B_MOE_Q4,
                                   lambda k: None) is r
 
-    def test_memory_clone_unchanged(self, monkeypatch):
-        monkeypatch.setattr(overlay_mod, "load_llm_anchor", lambda *a, **k: _anchor())
-        clone = hw_with_memory(NPU_MID, "LPDDR6", 14.0)
+    def test_memory_clone_bw_scales_anchor(self, monkeypatch):
+        # Amendment 5: the anchor's decode BW-scales for the upgraded bandwidth
+        # (decode is BW-bound), instead of the anchor being dropped.
+        monkeypatch.setattr(overlay_mod, "load_llm_anchor",
+                            lambda *a, **k: _anchor(tokps=42.0))
+        clone = hw_with_memory(NPU_MID, "LPDDR6", 14.0)  # 134.4 -> 224 GB/s
         r = _projected(QWEN3_30B_A3B_MOE_Q4, clone)
-        assert overlay_llm_anchor(r, clone, QWEN3_30B_A3B_MOE_Q4, _IDENTITY) is r
+        out = overlay_llm_anchor(r, clone, QWEN3_30B_A3B_MOE_Q4, _IDENTITY)
+        assert out.source == "measured_silicon_anchor"
+        assert out.decode_tok_s == pytest.approx(42.0 * (224.0 / 134.4), abs=0.01)
+        assert out.silicon_anchor_meta["bw_projected"] is True
+
+    def test_stock_tier_no_bw_scaling(self, monkeypatch):
+        # Stock (non-clone) tiers keep ratio 1.0 — anchor decode unchanged.
+        monkeypatch.setattr(overlay_mod, "load_llm_anchor",
+                            lambda *a, **k: _anchor(tokps=42.0))
+        r = _projected(QWEN3_30B_A3B_MOE_Q4, NPU_MID)
+        out = overlay_llm_anchor(r, NPU_MID, QWEN3_30B_A3B_MOE_Q4, _IDENTITY)
+        assert out.decode_tok_s == pytest.approx(42.0)
+        assert out.silicon_anchor_meta["bw_projected"] is False

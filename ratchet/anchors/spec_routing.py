@@ -22,16 +22,19 @@ def hw_to_anchor_tier_precision(
     ('int8' | 'fp8' | 'bf16/fp16' | 'q4_km') — see
     ratchet.precision.dtype_map.quant_scheme_capability_key.
 
-    Returns None for bw_projected tiers (memory-upgrade clones don't have their
-    own anchors) and for tier/precision combinations with no spec cell.
+    Returns None for tier/precision combinations with no spec cell.
+
+    Memory-upgrade clones (bw_projected) route via their STOCK identity
+    (tier_lookup_name) to the stock tier's anchor cell — the overlay then
+    BW-scales the anchor's decode for the upgraded bandwidth (decode is
+    BW-bound), holding TTFT at stock. (Prior versions returned None here, which
+    dropped the anchor entirely on any memory upgrade and let the cell fall to
+    cross-class — see ADR 011 Amendment 5.)
 
     Precision bucketing mirrors the silicon's execution path:
       - NPU Mid is INT8-only → INT8 and Q4_K_M (INT8 dequant) route to 'int8'.
       - NPU High runs INT8 natively, and FP / Q4_K_M (FP16 dequant) via 'fp'.
     """
-    if hw.bw_projected:
-        return None
-
     name = hw.tier_lookup_name
     key = capability_key.lower()
 
