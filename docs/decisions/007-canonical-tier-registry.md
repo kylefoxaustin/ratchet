@@ -27,6 +27,16 @@ The MODELS catalog is the opposite case (per-surface content); see ADR 014 /
 section 10. Tiers are canonical because facts are invariant; catalogs are
 per-surface because content legitimately varies.
 
+**Amendment (v0.2.2, 2026-05-21):** the initial registry specs (transcribed from
+the design doc) diverged from the two production surfaces (PAI sizer,
+keyhole-sizer), which agreed with each other. Discovered during the phase-2 PAI
+retrofit. Corrected to production truth: NPU High TDP 35→40 W; NPU Low-LP4
+3.2→4.266 GT/s (12.8→17.064 GB/s, LPDDR4X rate); NPU Low-LP5-32bit capacity
+8→16 GB; per-tier TDPs LP4/LP5-32/LP5-64 → 10/15/20 W. Confirms the canonical
+principle: where ratchet and a production surface disagree on an *invariant
+silicon fact*, the production measurement wins and ratchet is corrected (the
+surfaces don't fork around the engine).
+
 ## Consequences
 
 - One definition of each silicon class; cross-surface drift becomes impossible
