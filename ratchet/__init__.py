@@ -27,7 +27,7 @@ The MODELS catalog and per-surface tier ladders are NOT owned by ratchet — eac
 surface composes those from the canonical registry and ships its own catalog.
 """
 
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 # ─── Tiers ──────────────────────────────────────────────────────────
 from ratchet.tiers import (
@@ -55,10 +55,13 @@ from ratchet.precision import (
     SM120_BLACKWELL_CAPABILITY,
     CapabilityInfo,
     CapabilityLevel,
+    FP4RuntimeMaturity,
     deployment_path_for_tier,
+    effective_compute_dtype,
     hw_peak_tops_for_dtype,
     hw_supports_dtype,
     hw_supports_dtype_via_key,
+    is_fp4_compute_dtype,
     quant_scheme_capability_key,
 )
 
@@ -124,6 +127,7 @@ __all__ = [
     "SM120_BLACKWELL_CAPABILITY",
     "hw_supports_dtype", "hw_supports_dtype_via_key", "hw_peak_tops_for_dtype",
     "quant_scheme_capability_key", "DTYPE_ATTR_MAP", "deployment_path_for_tier",
+    "FP4RuntimeMaturity", "effective_compute_dtype", "is_fp4_compute_dtype",
     # projection
     "project_llm", "Projected", "WontFit", "DtypeMismatch", "ProjectionResult",
     "memory_feasibility", "kv_cache_bytes_per_token", "FeasibilityCheck",

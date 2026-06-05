@@ -7,8 +7,14 @@ keyhole's frozen-dataclass encoding style.
 from dataclasses import dataclass
 from typing import Literal, Optional
 
-ComputeDtype = Literal["fp16", "bf16", "fp8", "int8"]
-QuantScheme = Literal["Q4_K_M", "Q5_K_M", "Q8_0", "FP16", "FP8", "INT8_W8A8"]
+# "nvfp4" is the canonical FP4 compute dtype (MXFP4 conflates to it via
+# DTYPE_ATTR_MAP). FP4 is a native Blackwell sm_120/sm_100 compute format; its
+# realized throughput win is runtime-conditional (ADR 016).
+ComputeDtype = Literal["fp16", "bf16", "fp8", "int8", "nvfp4"]
+QuantScheme = Literal[
+    "Q4_K_M", "Q5_K_M", "Q8_0", "FP16", "FP8", "INT8_W8A8", "NVFP4", "MXFP4",
+    "INT4_AWQ", "INT4_GPTQ",
+]
 
 
 @dataclass(frozen=True)

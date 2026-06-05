@@ -153,3 +153,42 @@ def test_peak_tops_fp4_is_defaulted_zero():
     from ratchet.tiers.hardware import Hardware
     field = {f.name: f for f in dataclasses.fields(Hardware)}["peak_tops_fp4"]
     assert field.default == 0.0
+
+
+# ── ADR 016: FP4's compute win is runtime-conditional ──
+class TestFP4RuntimeMaturity:
+    def test_is_fp4_compute_dtype(self):
+        from ratchet.precision.dtype_map import is_fp4_compute_dtype
+        for dt in ("nvfp4", "fp4", "mxfp4", "NVFP4", "MXFP4"):
+            assert is_fp4_compute_dtype(dt) is True
+        for dt in ("bf16", "fp16", "fp8", "int8"):
+            assert is_fp4_compute_dtype(dt) is False
+
+    def test_effective_compute_dtype_immature_fp4_falls_to_bf16(self):
+        from ratchet.precision.dtype_map import effective_compute_dtype
+        # immature + FP4 -> bf16 floor (modeled as INT4 weight-only)
+        assert effective_compute_dtype("nvfp4", "immature") == "bf16"
+        assert effective_compute_dtype("mxfp4", "immature") == "bf16"
+        # mature + FP4 -> unchanged (realizes the native FP4 win)
+        assert effective_compute_dtype("nvfp4", "mature") == "nvfp4"
+        # default is mature (non-breaking)
+        assert effective_compute_dtype("nvfp4") == "nvfp4"
+        # non-FP4 dtypes are identity regardless of maturity
+        assert effective_compute_dtype("int8", "immature") == "int8"
+        assert effective_compute_dtype("bf16", "immature") == "bf16"
+
+    def test_deployment_path_fp4_mature_native_immature_caveat(self):
+        hw = _mk(capability_levels=SM120_BLACKWELL_CAPABILITY, peak_tops_fp4=1676.0)
+        # mature (and the default) -> native_fast
+        assert deployment_path_for_tier(hw, "nvfp4", "fresh_compile") == "native_fast"
+        assert deployment_path_for_tier(
+            hw, "nvfp4", "fresh_compile", "mature") == "native_fast"
+        # immature -> the FP4-specific caveat label
+        assert deployment_path_for_tier(
+            hw, "nvfp4", "fresh_compile", "immature") == "fp4_runtime_immature"
+
+    def test_deployment_path_immature_only_affects_fp4(self):
+        # immature maturity must not perturb a non-FP4 dtype's path
+        hw = _mk(capability_levels=NPU_FULL_DTYPE_CAPABILITY, peak_tops_bf16=200.0)
+        assert deployment_path_for_tier(
+            hw, "bf16", "fresh_compile", "immature") == "native_fast"

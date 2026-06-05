@@ -145,6 +145,55 @@ class TestWorkloadPattern:
         assert out.base_decode_pre_multiplier == result.decode_tok_s
 
 
+class TestFP4RuntimeMaturity:
+    """ADR 016: FP4's prefill compute win is realized only on a mature runtime.
+
+    On the 5090 (cross-class path, no anchors), an FP4 model's prefill is
+    compute-bound: 'mature' uses peak_tops_fp4 (1676), 'immature' falls to the
+    bf16 floor (209) — i.e. the model is treated as INT4 weight-only."""
+
+    def _fp4_model(self):
+        return _model(key="fp4_only_model", quant_scheme="NVFP4",
+                      compute_dtype="nvfp4", bytes_per_param=0.5)
+
+    def test_immature_runtime_loses_prefill_win(self):
+        m = self._fp4_model()
+        mature = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000)
+        immature = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000,
+                               fp4_runtime_maturity="immature")
+        assert isinstance(mature, Projected) and isinstance(immature, Projected)
+        # The FP4 prefill win evaporates on an immature runtime.
+        assert mature.prefill_tok_s > immature.prefill_tok_s
+        # peak_tops_fp4 (1676) vs peak_tops_bf16 (209) on a compute-bound prefill
+        # → roughly the TOPS ratio (allowing BW-floor + overhead slack).
+        assert mature.prefill_tok_s / immature.prefill_tok_s > 3.0
+
+    def test_default_is_mature_non_breaking(self):
+        m = self._fp4_model()
+        default = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000)
+        mature = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000,
+                             fp4_runtime_maturity="mature")
+        assert default.prefill_tok_s == pytest.approx(mature.prefill_tok_s, rel=1e-9)
+
+    def test_immature_fp4_matches_bf16_floor(self):
+        # Immature FP4 ≅ a bf16-compute model (same params/bytes): the compute
+        # floor that governs prefill is identical.
+        fp4 = self._fp4_model()
+        bf16 = _model(key="bf16_twin", quant_scheme="BF16",
+                      compute_dtype="bf16", bytes_per_param=0.5)
+        fp4_imm = project_llm(fp4, RTX_5090_REFERENCE, "w", prompt_tokens=2000,
+                              fp4_runtime_maturity="immature")
+        bf16_proj = project_llm(bf16, RTX_5090_REFERENCE, "w", prompt_tokens=2000)
+        assert fp4_imm.prefill_tok_s == pytest.approx(bf16_proj.prefill_tok_s, rel=1e-6)
+
+    def test_non_fp4_model_unaffected_by_maturity(self):
+        m = _model(key="q4_model")  # Q4_K_M / fp16 compute
+        a = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000)
+        b = project_llm(m, RTX_5090_REFERENCE, "w", prompt_tokens=2000,
+                        fp4_runtime_maturity="immature")
+        assert a.prefill_tok_s == pytest.approx(b.prefill_tok_s, rel=1e-9)
+
+
 def _clone_with_measured_llm():
     import dataclasses
     return dataclasses.replace(

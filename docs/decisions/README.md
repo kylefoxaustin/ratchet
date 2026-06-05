@@ -25,6 +25,7 @@ decision, what alternatives were considered, what we chose, and why.
 | 013 | Custom tier factory with silicon-class defaults         | Accepted | ratchet v0.2.0               |
 | 014 | Calibration provenance                                  | Accepted | ratchet v0.2.0               |
 | 015 | DTYPE attribute dispatch + dual-calibration convention  | Accepted | ratchet v0.2.0               |
+| 016 | FP4 compute win is runtime-conditional                   | Accepted | ratchet v0.2.6               |
 
 ADRs 007-015 were added in ratchet v0.2.0 (the engine-consolidation release).
 Two design-doc amendments were folded in during implementation: AMENDMENT 1

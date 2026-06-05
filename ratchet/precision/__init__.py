@@ -12,9 +12,12 @@ from ratchet.precision.deployment_path import (
 )
 from ratchet.precision.dtype_map import (
     DTYPE_ATTR_MAP,
+    FP4RuntimeMaturity,
+    effective_compute_dtype,
     hw_peak_tops_for_dtype,
     hw_supports_dtype,
     hw_supports_dtype_via_key,
+    is_fp4_compute_dtype,
     quant_scheme_capability_key,
 )
 
@@ -26,4 +29,5 @@ __all__ = [
     "hw_supports_dtype", "hw_supports_dtype_via_key",
     "hw_peak_tops_for_dtype", "quant_scheme_capability_key",
     "deployment_path_for_tier", "WorkloadKernelSource",
+    "FP4RuntimeMaturity", "effective_compute_dtype", "is_fp4_compute_dtype",
 ]

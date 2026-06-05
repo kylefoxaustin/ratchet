@@ -87,5 +87,8 @@ SM120_BLACKWELL_CAPABILITY: dict[str, CapabilityInfo] = {
                                 "Q4_K_M weight-only quant runs via FP16 dequant path"),
     "nvfp4":     CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
                                 "NVFP4/MXFP4 native to SM120 (5th-gen FP4 tensor cores) - "
-                                "memory + compute format (measured ~3.6x BF16 prefill, ~2.2x decode)"),
+                                "memory + compute format. Compute win is RUNTIME-CONDITIONAL "
+                                "(ADR 016): mature FP4 kernels (vLLM>=0.22 FlashInfer/CUTLASS, "
+                                "TensorRT-LLM) -> ~3.6x BF16 prefill / ~2.2x decode; immature "
+                                "runtimes (llama.cpp today) realize no win (~INT4 weight-only)"),
 }

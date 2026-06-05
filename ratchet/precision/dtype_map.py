@@ -13,12 +13,23 @@ on compute_dtype alone wrongly rejects such models (and would skip a measured
 anchor that exists for exactly that tier+model). quant_scheme_capability_key()
 and hw_supports_dtype_via_key() resolve this; project_llm gates on them.
 """
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional
 
 from ratchet.precision.capability import CapabilityLevel
 
 if TYPE_CHECKING:
     from ratchet.tiers.hardware import Hardware
+
+
+# ADR 016: FP4's compute win is realized only on a runtime with mature FP4 GEMM
+# kernels (vLLM>=0.22 FlashInfer/CUTLASS NVFP4, TensorRT-LLM). On an immature
+# runtime (llama.cpp today) the same silicon + weights yield no win — FP4 behaves
+# like INT4 weight-only. This is a deployment/runtime property, NOT silicon, so it
+# rides on the projection call rather than on Hardware.
+FP4RuntimeMaturity = Literal["mature", "immature"]
+
+# Canonical FP4 compute-dtype strings (all route to peak_tops_fp4).
+_FP4_COMPUTE_DTYPES: frozenset[str] = frozenset({"nvfp4", "fp4", "mxfp4"})
 
 
 DTYPE_ATTR_MAP: dict[str, str] = {
@@ -60,6 +71,25 @@ def hw_peak_tops_for_dtype(hw: "Hardware", dtype: str) -> float:
     if attr is None:
         return 0.0
     return float(getattr(hw, attr, 0.0))
+
+
+def is_fp4_compute_dtype(dtype: str) -> bool:
+    """True if dtype is an FP4 compute format (nvfp4/fp4/mxfp4)."""
+    return dtype.lower() in _FP4_COMPUTE_DTYPES
+
+
+def effective_compute_dtype(
+    dtype: str, fp4_runtime_maturity: FP4RuntimeMaturity = "mature"
+) -> str:
+    """Compute dtype to use for the raw-peak-TOPS floor lookup (ADR 016).
+
+    On an immature FP4 runtime the FP4 GEMM win is unrealizable, so an FP4 model
+    is modeled as INT4 weight-only: the compute floor falls to the bf16 floor
+    (decode stays BW-bound by the ~4-bit weight bytes, which the caller handles
+    separately). For every other (dtype, maturity) combination this is identity."""
+    if fp4_runtime_maturity == "immature" and is_fp4_compute_dtype(dtype):
+        return "bf16"
+    return dtype
 
 
 def _dtype_capability_key(dtype: str) -> str:

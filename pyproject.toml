@@ -1,6 +1,6 @@
 [project]
 name = "ratchet"
-version = "0.2.5"
+version = "0.2.6"
 description = "Generic SoC sizing engine — canonical tier registry, capability taxonomy, LLM projection, anchor-secrets overlay, sliders, KPIs, probes, and Parquet workload records. Shared dependency for drone/video/agentic-AI sizers."
 readme = "README.md"
 requires-python = ">=3.10"
