@@ -26,6 +26,7 @@ decision, what alternatives were considered, what we chose, and why.
 | 014 | Calibration provenance                                  | Accepted | ratchet v0.2.0               |
 | 015 | DTYPE attribute dispatch + dual-calibration convention  | Accepted | ratchet v0.2.0               |
 | 016 | FP4 compute win is runtime-conditional                   | Accepted | ratchet v0.2.6               |
+| 017 | NPU precision-set override + forward-looking FP4 NPU     | Accepted | ratchet v0.2.7               |
 
 ADRs 007-015 were added in ratchet v0.2.0 (the engine-consolidation release).
 Two design-doc amendments were folded in during implementation: AMENDMENT 1

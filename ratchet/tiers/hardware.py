@@ -140,6 +140,15 @@ class Hardware:
     (peak_tops_<dtype> > 0 → supported). Canonical tiers MUST set this; custom
     tiers MAY leave it None and accept the heuristic fallback."""
 
+    npu_precision_set: Optional[str] = None
+    """ADR 017: the NPU precision rung this tier was built at ('int8' /
+    'int8_fp8' / 'int8_fp8_fp4'), or None. A *silicon* fact: which dtype the
+    tensor engine executes at. When set, project_llm overrides a model's nominal
+    compute_dtype with the rung's dtype for the compute floor (so the precision
+    selector isn't inert). None on every canonical tier (non-breaking — they keep
+    reading model.compute_dtype). Set only by make_custom_tier(npu_precision_set=).
+    Distinct from fp4_runtime_maturity (a runtime property, a project_llm param)."""
+
     # ─── Calibration provenance ───
     calibration_source: Optional[CalibrationSource] = None
     """Provenance metadata for the calibration constants on this tier. Encodes

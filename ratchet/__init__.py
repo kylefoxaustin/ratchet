@@ -27,7 +27,7 @@ The MODELS catalog and per-surface tier ladders are NOT owned by ratchet — eac
 surface composes those from the canonical registry and ships its own catalog.
 """
 
-__version__ = "0.2.6"
+__version__ = "0.2.7"
 
 # ─── Tiers ──────────────────────────────────────────────────────────
 from ratchet.tiers import (
@@ -51,11 +51,14 @@ from ratchet.tiers import (
 from ratchet.precision import (
     DTYPE_ATTR_MAP,
     NEUTRON_INT8_ONLY_CAPABILITY,
+    NPU_FP4_CAPABILITY,
     NPU_FULL_DTYPE_CAPABILITY,
+    PRECISION_SET_CAPABILITY,
     SM120_BLACKWELL_CAPABILITY,
     CapabilityInfo,
     CapabilityLevel,
     FP4RuntimeMaturity,
+    NpuPrecisionSet,
     deployment_path_for_tier,
     effective_compute_dtype,
     hw_peak_tops_for_dtype,
@@ -63,6 +66,7 @@ from ratchet.precision import (
     hw_supports_dtype_via_key,
     is_fp4_compute_dtype,
     quant_scheme_capability_key,
+    resolve_floor_dtype,
 )
 
 # ─── Projection ─────────────────────────────────────────────────────
@@ -128,6 +132,8 @@ __all__ = [
     "hw_supports_dtype", "hw_supports_dtype_via_key", "hw_peak_tops_for_dtype",
     "quant_scheme_capability_key", "DTYPE_ATTR_MAP", "deployment_path_for_tier",
     "FP4RuntimeMaturity", "effective_compute_dtype", "is_fp4_compute_dtype",
+    "NPU_FP4_CAPABILITY", "PRECISION_SET_CAPABILITY", "NpuPrecisionSet",
+    "resolve_floor_dtype",
     # projection
     "project_llm", "Projected", "WontFit", "DtypeMismatch", "ProjectionResult",
     "memory_feasibility", "kv_cache_bytes_per_token", "FeasibilityCheck",

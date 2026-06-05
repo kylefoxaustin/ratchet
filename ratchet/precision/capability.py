@@ -92,3 +92,29 @@ SM120_BLACKWELL_CAPABILITY: dict[str, CapabilityInfo] = {
                                 "TensorRT-LLM) -> ~3.6x BF16 prefill / ~2.2x decode; immature "
                                 "runtimes (llama.cpp today) realize no win (~INT4 weight-only)"),
 }
+
+
+# ADR 017: a forward-looking "hypothetical FP4-capable edge NPU" — NPU_FULL plus
+# native FP4. v0.2.5 deliberately set nvfp4=UNSUPPORTED on every real NPU class
+# (no edge NPU ships FP4 today); this dict is the OPT-IN assertion for what an
+# FP4-capable edge NPU would look like. ZERO silicon anchors — confidence is low,
+# and the realized FP4 throughput is still governed by fp4_runtime_maturity
+# (which for edge should be 'immature', ADR 016).
+NPU_FP4_CAPABILITY: dict[str, CapabilityInfo] = {
+    **NPU_FULL_DTYPE_CAPABILITY,
+    "nvfp4": CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
+                            "FP4 tensor cores on a forward-looking FP4-capable edge "
+                            "NPU (ADR 017) - modeled, ZERO silicon anchors, confidence "
+                            "low; realized win is runtime-conditional (ADR 016)"),
+}
+
+
+# ADR 017: the escalating precision ladder for make_custom_tier(npu_precision_set=...).
+# No real silicon ships FP4 datapaths without FP8 (FP4 MACs build on the FP8 ones),
+# so the valid states are a 3-rung radio, not free checkboxes. Each rung selects the
+# capability dict that names which dtypes the tensor engine executes natively.
+PRECISION_SET_CAPABILITY: dict[str, dict[str, CapabilityInfo]] = {
+    "int8":          NEUTRON_INT8_ONLY_CAPABILITY,
+    "int8_fp8":      NPU_FULL_DTYPE_CAPABILITY,
+    "int8_fp8_fp4":  NPU_FP4_CAPABILITY,
+}

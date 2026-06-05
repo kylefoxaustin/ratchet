@@ -192,3 +192,36 @@ class TestFP4RuntimeMaturity:
         hw = _mk(capability_levels=NPU_FULL_DTYPE_CAPABILITY, peak_tops_bf16=200.0)
         assert deployment_path_for_tier(
             hw, "bf16", "fresh_compile", "immature") == "native_fast"
+
+
+# ── ADR 017: NPU precision-set ladder ──
+class TestPrecisionSetMaps:
+    def test_npu_fp4_capability_is_npu_full_plus_native_fp4(self):
+        from ratchet.precision.capability import (
+            NPU_FP4_CAPABILITY, NPU_FULL_DTYPE_CAPABILITY)
+        # identical to NPU_FULL except nvfp4 is promoted to native
+        assert NPU_FP4_CAPABILITY["nvfp4"].level is CapabilityLevel.TENSOR_NATIVE
+        assert NPU_FULL_DTYPE_CAPABILITY["nvfp4"].level is CapabilityLevel.UNSUPPORTED
+        for k in ("int8", "fp8", "bf16/fp16", "q4_km"):
+            assert NPU_FP4_CAPABILITY[k].level is NPU_FULL_DTYPE_CAPABILITY[k].level
+
+    def test_precision_set_capability_map(self):
+        from ratchet.precision.capability import (
+            PRECISION_SET_CAPABILITY, NEUTRON_INT8_ONLY_CAPABILITY,
+            NPU_FULL_DTYPE_CAPABILITY, NPU_FP4_CAPABILITY)
+        assert PRECISION_SET_CAPABILITY["int8"] is NEUTRON_INT8_ONLY_CAPABILITY
+        assert PRECISION_SET_CAPABILITY["int8_fp8"] is NPU_FULL_DTYPE_CAPABILITY
+        assert PRECISION_SET_CAPABILITY["int8_fp8_fp4"] is NPU_FP4_CAPABILITY
+
+    def test_resolve_floor_dtype(self):
+        from ratchet.precision.dtype_map import resolve_floor_dtype
+        # no precision set -> identity on model compute_dtype (v0.2.6 behavior)
+        assert resolve_floor_dtype(None, "fp16") == "fp16"
+        # the rung OVERRIDES the model's nominal compute_dtype
+        assert resolve_floor_dtype("int8", "fp16") == "int8"
+        assert resolve_floor_dtype("int8_fp8", "fp16") == "fp8"
+        assert resolve_floor_dtype("int8_fp8_fp4", "fp16") == "nvfp4"
+        # ADR-016 maturity derate composes on top: immature FP4 rung -> bf16 floor
+        assert resolve_floor_dtype("int8_fp8_fp4", "fp16", "immature") == "bf16"
+        # non-FP4 rungs are unaffected by maturity
+        assert resolve_floor_dtype("int8_fp8", "fp16", "immature") == "fp8"

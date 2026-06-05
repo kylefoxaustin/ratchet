@@ -32,6 +32,29 @@ FP4RuntimeMaturity = Literal["mature", "immature"]
 _FP4_COMPUTE_DTYPES: frozenset[str] = frozenset({"nvfp4", "fp4", "mxfp4"})
 
 
+# ADR 017: the NPU precision-set ladder. Each rung names the dtype the tensor
+# engine executes at, which OVERRIDES a model's nominal compute_dtype for the
+# projection floor (a weight-only Q4 model nominally carries compute_dtype='fp16'
+# -> reads peak_tops_bf16; on an 'int8_fp8' tier it actually executes in fp8 ->
+# reads peak_tops_fp8). Without this override the precision selector is inert.
+NpuPrecisionSet = Literal["int8", "int8_fp8", "int8_fp8_fp4"]
+
+PRECISION_SET_COMPUTE_DTYPE: dict[str, str] = {
+    "int8":         "int8",
+    "int8_fp8":     "fp8",
+    "int8_fp8_fp4": "nvfp4",
+}
+
+# peak_tops_* fields to ZERO for each rung (the dtypes ABOVE the rung that the
+# tier's capability dict declares UNSUPPORTED) — keeps a Hardware object coherent
+# (it can't advertise FP4 TOPS while declaring FP4 unsupported).
+PRECISION_SET_ZEROED_PEAK_TOPS: dict[str, tuple[str, ...]] = {
+    "int8":         ("peak_tops_fp8", "peak_tops_fp4", "peak_tops_bf16"),
+    "int8_fp8":     ("peak_tops_fp4",),
+    "int8_fp8_fp4": (),
+}
+
+
 DTYPE_ATTR_MAP: dict[str, str] = {
     "int8":  "peak_tops_int8",
     "fp8":   "peak_tops_fp8",
@@ -90,6 +113,22 @@ def effective_compute_dtype(
     if fp4_runtime_maturity == "immature" and is_fp4_compute_dtype(dtype):
         return "bf16"
     return dtype
+
+
+def resolve_floor_dtype(
+    npu_precision_set: Optional[str],
+    model_compute_dtype: str,
+    fp4_runtime_maturity: FP4RuntimeMaturity = "mature",
+) -> str:
+    """The dtype the projection compute floor should read (ADR 016 + 017).
+
+    A tier's `npu_precision_set` (when set) names the dtype the tensor engine
+    executes at, overriding the model's nominal compute_dtype; then the ADR-016
+    maturity derate applies (immature FP4 -> bf16 floor). When the tier has no
+    precision set (every canonical tier), this is just the model's compute_dtype
+    plus the maturity derate — i.e. v0.2.6 behavior."""
+    base = PRECISION_SET_COMPUTE_DTYPE.get(npu_precision_set or "", model_compute_dtype)
+    return effective_compute_dtype(base, fp4_runtime_maturity)
 
 
 def _dtype_capability_key(dtype: str) -> str:

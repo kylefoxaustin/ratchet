@@ -24,10 +24,10 @@ from ratchet.catalog.model import LLMModel, resolve_measurement_key
 from ratchet.precision.capability import CapabilityLevel
 from ratchet.precision.dtype_map import (
     FP4RuntimeMaturity,
-    effective_compute_dtype,
     hw_peak_tops_for_dtype,
     hw_supports_dtype_via_key,
     quant_scheme_capability_key,
+    resolve_floor_dtype,
 )
 from ratchet.projection.feasibility import memory_feasibility
 from ratchet.projection.result import (
@@ -277,7 +277,8 @@ def _prefill_floor(hw, model, prompt_tokens, compiler_quality,
     """Prefill rate + ttft from the cross-class compute/BW floor."""
     active_params_gb = model.active_params_b * model.bytes_per_param
     gops_per_token = 2 * model.active_params_b
-    floor_dtype = effective_compute_dtype(model.compute_dtype, fp4_runtime_maturity)
+    floor_dtype = resolve_floor_dtype(
+        hw.npu_precision_set, model.compute_dtype, fp4_runtime_maturity)
     peak_tops_llm = max(hw_peak_tops_for_dtype(hw, floor_dtype), 1e-9)
     bw_floor_ms = (active_params_gb / hw.effective_bandwidth_gbs) * 1000.0
     compute_floor_ms = (
@@ -299,7 +300,8 @@ def _build_cross_class(hw, model, workload_id, *, prompt_tokens, decode_tokens,
     decode stays governed by the BW floor either way (4-bit weight bytes)."""
     active_params_gb = model.active_params_b * model.bytes_per_param  # AMENDMENT 1
     gops_per_token = 2 * model.active_params_b                        # AMENDMENT 1
-    floor_dtype = effective_compute_dtype(model.compute_dtype, fp4_runtime_maturity)
+    floor_dtype = resolve_floor_dtype(
+        hw.npu_precision_set, model.compute_dtype, fp4_runtime_maturity)
     peak_tops_llm = max(hw_peak_tops_for_dtype(hw, floor_dtype), 1e-9)
 
     # Decode-side per-token floors
