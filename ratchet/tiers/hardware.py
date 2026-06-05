@@ -65,6 +65,14 @@ class Hardware:
     memory-upgrade clones. NOT used for anchor-secrets routing (that routes
     through bw_projected + tier_lookup_name instead, per ADR 010)."""
 
+    peak_tops_fp4: float = 0.0
+    """Raw peak FP4 (NVFP4/MXFP4) TOPS. 0.0 on tiers without a native FP4
+    tensor-core path (every edge NPU today, and pre-Blackwell GPUs). Defaulted
+    (added v0.2.5) so existing tier constructions don't break — logically a
+    silicon peak_tops_* field alongside bf16/int8/fp8. Native on Blackwell sm_120
+    (RTX 5090) / sm_100 (B200): FP4 is a compute format (memory + compute), unlike
+    weight-only INT4. Routed via DTYPE_ATTR_MAP['nvfp4']."""
+
     # ─── Calibration constants (per-tier defaults, mutable per-tier) ───
     compute_efficiency: float = 0.65
     """Real-workload effective TOPS multiplier. effective_tops() returns

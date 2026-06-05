@@ -117,3 +117,39 @@ class TestDeploymentPath:
     def test_unsupported(self):
         hw = _mk(capability_levels=NEUTRON_INT8_ONLY_CAPABILITY)
         assert deployment_path_for_tier(hw, "fp8", "precompiled") == "unsupported"
+
+
+# ── NVFP4 / FP4 (added v0.2.5) — FP4 is a COMPUTE format on Blackwell sm_120 ──
+def test_nvfp4_routes_to_fp4_peak_and_is_native_on_sm120():
+    from ratchet.tiers.registry import RTX_5090_REFERENCE as hw
+    from ratchet.precision.dtype_map import (
+        hw_peak_tops_for_dtype, quant_scheme_capability_key, DTYPE_ATTR_MAP)
+    from ratchet.precision.capability import (
+        SM120_BLACKWELL_CAPABILITY, NEUTRON_INT8_ONLY_CAPABILITY,
+        NPU_FULL_DTYPE_CAPABILITY, CapabilityLevel)
+
+    # nvfp4 + aliases route to the new peak_tops_fp4 silicon field
+    for dt in ("nvfp4", "fp4", "mxfp4"):
+        assert DTYPE_ATTR_MAP[dt] == "peak_tops_fp4"
+    assert hw.peak_tops_fp4 == 1676.0
+    assert hw_peak_tops_for_dtype(hw, "nvfp4") == 1676.0
+
+    # FP4 quant schemes gate on the fp4 capability key; weight-only INT4 does NOT
+    # (it dequantizes to bf16 — the measured memory-format / bf16-prefill-floor result).
+    assert quant_scheme_capability_key("NVFP4") == "nvfp4"
+    assert quant_scheme_capability_key("MXFP4") == "nvfp4"
+    assert quant_scheme_capability_key("INT4_AWQ") == "bf16/fp16"
+
+    # capability: native on Blackwell sm_120, unsupported on edge NPUs (no FP4 path)
+    assert SM120_BLACKWELL_CAPABILITY["nvfp4"].level is CapabilityLevel.TENSOR_NATIVE
+    assert NEUTRON_INT8_ONLY_CAPABILITY["nvfp4"].level is CapabilityLevel.UNSUPPORTED
+    assert NPU_FULL_DTYPE_CAPABILITY["nvfp4"].level is CapabilityLevel.UNSUPPORTED
+
+
+def test_peak_tops_fp4_is_defaulted_zero():
+    # the field is defaulted (=0.0) so existing/edge tier constructions don't break
+    # and any tier without an explicit FP4 path reads 0.0.
+    import dataclasses
+    from ratchet.tiers.hardware import Hardware
+    field = {f.name: f for f in dataclasses.fields(Hardware)}["peak_tops_fp4"]
+    assert field.default == 0.0

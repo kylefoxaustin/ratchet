@@ -62,6 +62,8 @@ NEUTRON_INT8_ONLY_CAPABILITY: dict[str, CapabilityInfo] = {
                                 "Neutron NPU has no FP path"),
     "q4_km":     CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
                                 "Q4_K_M weight-only quant runs via INT8 dequant path"),
+    "nvfp4":     CapabilityInfo(CapabilityLevel.UNSUPPORTED,
+                                "Neutron NPU has no FP4 path"),
 }
 
 
@@ -71,6 +73,8 @@ NPU_FULL_DTYPE_CAPABILITY: dict[str, CapabilityInfo] = {
     "bf16/fp16": CapabilityInfo(CapabilityLevel.TENSOR_NATIVE, "BF16/FP16 tensor cores"),
     "q4_km":     CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
                                 "Q4_K_M weight-only quant runs via FP16 dequant path"),
+    "nvfp4":     CapabilityInfo(CapabilityLevel.UNSUPPORTED,
+                                "no native FP4 tensor-core path (FP4 is Blackwell-class today)"),
 }
 
 
@@ -81,4 +85,7 @@ SM120_BLACKWELL_CAPABILITY: dict[str, CapabilityInfo] = {
     "bf16/fp16": CapabilityInfo(CapabilityLevel.TENSOR_NATIVE, "BF16/FP16 native to SM120"),
     "q4_km":     CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
                                 "Q4_K_M weight-only quant runs via FP16 dequant path"),
+    "nvfp4":     CapabilityInfo(CapabilityLevel.TENSOR_NATIVE,
+                                "NVFP4/MXFP4 native to SM120 (5th-gen FP4 tensor cores) - "
+                                "memory + compute format (measured ~3.6x BF16 prefill, ~2.2x decode)"),
 }

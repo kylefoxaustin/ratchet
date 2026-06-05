@@ -22,14 +22,20 @@ if TYPE_CHECKING:
 
 
 DTYPE_ATTR_MAP: dict[str, str] = {
-    "int8": "peak_tops_int8",
-    "fp8":  "peak_tops_fp8",
-    "bf16": "peak_tops_bf16",
-    "fp16": "peak_tops_bf16",  # fp16 conflates to bf16 field
+    "int8":  "peak_tops_int8",
+    "fp8":   "peak_tops_fp8",
+    "bf16":  "peak_tops_bf16",
+    "fp16":  "peak_tops_bf16",  # fp16 conflates to bf16 field
+    "nvfp4": "peak_tops_fp4",   # NVFP4/MXFP4 — native FP4 compute path (Blackwell sm_120/sm_100)
+    "fp4":   "peak_tops_fp4",   # alias
+    "mxfp4": "peak_tops_fp4",   # alias
 }
 
 
 # AMENDMENT 1: quant scheme → canonical capability key.
+# NOTE: NVFP4/MXFP4 (FP4) is a COMPUTE format → gates on 'nvfp4'. INT4 weight-only
+# (AWQ/GPTQ) is a MEMORY format with no FP4 compute path → gates on 'bf16/fp16'
+# (it dequantizes to bf16; prefill stays on the bf16 floor — measured on the 5090).
 _QUANT_SCHEME_CAPABILITY_KEY: dict[str, str] = {
     "Q4_K_M": "q4_km",
     "Q5_K_M": "q4_km",
@@ -38,6 +44,10 @@ _QUANT_SCHEME_CAPABILITY_KEY: dict[str, str] = {
     "FP8":    "fp8",
     "FP16":   "bf16/fp16",
     "BF16":   "bf16/fp16",
+    "NVFP4":  "nvfp4",
+    "MXFP4":  "nvfp4",
+    "INT4_AWQ": "bf16/fp16",  # weight-only INT4: memory format, dequant-to-bf16 compute path
+    "INT4_GPTQ": "bf16/fp16",
 }
 
 

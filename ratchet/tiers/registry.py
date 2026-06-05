@@ -152,6 +152,8 @@ NPU_HIGH = Hardware(
 RTX_5090_REFERENCE = Hardware(
     name="RTX 5090 (reference, measured)",
     peak_tops_bf16=209.0, peak_tops_int8=419.0, peak_tops_fp8=419.0,
+    peak_tops_fp4=1676.0,  # native NVFP4/MXFP4 (5th-gen tensor cores, dense). Measured
+                           # FP4 GEMM hit ~1300 (~78% of peak); INT4 has no FP4 path.
     mem_bandwidth_gbs=1792.0, mem_capacity_gb=32.0,
     mem_bus_width_bits=512, mem_type="GDDR7", mem_data_rate_gtps=28.0,
     compute_efficiency=0.70, bandwidth_efficiency=0.85,
