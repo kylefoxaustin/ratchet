@@ -29,6 +29,7 @@ decision, what alternatives were considered, what we chose, and why.
 | 017 | NPU precision-set override + forward-looking FP4 NPU     | Accepted | ratchet v0.2.7               |
 | 018 | CPU-complex modeling + perception measurement-attachment | Accepted | ratchet v0.3.0               |
 | 019 | CPU-workload projection (two independent projections)    | Accepted | ratchet v0.3.0               |
+| 020 | projected + derived_from_measured calibration methods    | Accepted | ratchet v0.3.2               |
 
 ADRs 007-015 were added in ratchet v0.2.0 (the engine-consolidation release).
 Two design-doc amendments were folded in during implementation: AMENDMENT 1

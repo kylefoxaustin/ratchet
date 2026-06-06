@@ -24,6 +24,20 @@ class TestCalibrationSource:
         with pytest.raises(Exception):
             cs.method = "default"  # type: ignore[misc]
 
+    # ADR 020 (v0.3.2): 'projected' + 'derived_from_measured' added so a
+    # per-metric PerceptionAnchor source can carry the §9 badge vocabulary.
+    @pytest.mark.parametrize("method", ["projected", "derived_from_measured"])
+    def test_perception_badge_methods_valid(self, method):
+        cs = CalibrationSource(method=method, reference="ORB BW est",
+                               confidence="low")
+        assert cs.method == method  # not special-cased by __post_init__
+
+    def test_badge_vocabulary_covers_all_perception_methods(self):
+        # The badge map must render every source a PerceptionAnchor can carry.
+        from ratchet.anchors.loader import BADGE_FOR_SOURCE
+        for m in ("measured", "derived_from_measured", "vendor_spec", "projected"):
+            assert BADGE_FOR_SOURCE.get(m)  # non-empty badge
+
 
 class TestSiliconClassDefaults:
     def test_all_six_classes(self):

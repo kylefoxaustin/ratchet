@@ -34,9 +34,10 @@ except ImportError:  # ratchet must import in headless / non-streamlit envs
 
 # Badge color by source — matches keyhole-sizer's _render_source_banner convention.
 BADGE_FOR_SOURCE = {
-    "measured":     "🟢",
-    "vendor_spec":  "🟡",
-    "projected":    "🟠",
+    "measured":              "🟢",
+    "derived_from_measured": "🔵",  # measured, then transformed (e.g. per-camera offload) — v0.3.2
+    "vendor_spec":           "🟡",
+    "projected":             "🟠",
     # unknown / missing source → no badge
 }
 
