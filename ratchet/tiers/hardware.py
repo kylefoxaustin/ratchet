@@ -10,6 +10,8 @@ from typing import Optional
 
 from ratchet.calibration.source import CalibrationSource
 from ratchet.precision.capability import CapabilityInfo
+from ratchet.tiers.cpu import CpuComplex
+from ratchet.tiers.perception import PerceptionAnchor
 
 
 @dataclass
@@ -72,6 +74,13 @@ class Hardware:
     silicon peak_tops_* field alongside bf16/int8/fp8. Native on Blackwell sm_120
     (RTX 5090) / sm_100 (B200): FP4 is a compute format (memory + compute), unlike
     weight-only INT4. Routed via DTYPE_ATTR_MAP['nvfp4']."""
+
+    cpu: Optional[CpuComplex] = None
+    """The application-processor CPU complex (ADR 018 / R1). None on tiers that
+    only model the NPU/GPU (every pre-v0.3.0 consumer — PAI sizer, keyhole-sizer —
+    leaves this None, so they are unaffected). Populated on the drone-brain tiers
+    (i.MX 93/95 = A55, NPU Mid/High = A720). drone-sizer's perception projection
+    keys off this; LLM/vision projection ignores it."""
 
     # ─── Calibration constants (per-tier defaults, mutable per-tier) ───
     compute_efficiency: float = 0.65
@@ -205,6 +214,15 @@ class Hardware:
     NOT populated on NPU tiers in this version — those use
     measured_decode_overrides / measured_prefill_overrides for now."""
 
+    measured_perception: Optional[dict[str, PerceptionAnchor]] = None
+    """Perception (SLAM/VIO) measurement anchors keyed by workload_class (ADR 018 /
+    R1+R3). Each PerceptionAnchor carries a latency distribution, an optional
+    solver-convergence anchor, and per-metric calibration_source (latency may be
+    measured while bw/cores are projected). The R2 projection consumes these; the
+    surface sums BW (R3) by reading the anchors. None on tiers without perception
+    measurements. Populated SURFACE-SIDE at import (the measured_llm precedent) —
+    ratchet ships the shape, drone-sizer ships the numbers."""
+
     # ─── Properties ───
     @property
     def effective_bandwidth_gbs(self) -> float:
@@ -248,3 +266,17 @@ class Hardware:
         if not self.measured_llm:
             return None
         return self.measured_llm.get(model_key, {}).get(workload_id)
+
+    def get_perception_anchor(
+        self, workload_class: str
+    ) -> Optional[PerceptionAnchor]:
+        """Resolve a perception measurement anchor by workload_class (ADR 018).
+
+        Returns None if this tier has no anchor for the workload. The surface
+        reads .bw_gbs / .cores off the result (with their calibration_source) to
+        sum the shared-bus budget (R3), and feeds .latency / .solver to the R2
+        projection. Exposes the data; the summing and the verdict are surface
+        work (the Cut A boundary)."""
+        if not self.measured_perception:
+            return None
+        return self.measured_perception.get(workload_class)

@@ -1,4 +1,10 @@
 """The workload projection API."""
+from ratchet.projection.cpu import (
+    CpuLatencyProjection,
+    SolverConvergenceProjection,
+    project_frame_latency,
+    project_solver_convergence,
+)
 from ratchet.projection.feasibility import (
     FeasibilityCheck,
     kv_cache_bytes_per_token,
@@ -21,4 +27,6 @@ __all__ = [
     "Projected", "WontFit", "DtypeMismatch", "ProjectionResult",
     "memory_feasibility", "kv_cache_bytes_per_token", "FeasibilityCheck",
     "WorkloadPatternMultipliers", "apply_workload_pattern",
+    "project_frame_latency", "project_solver_convergence",
+    "CpuLatencyProjection", "SolverConvergenceProjection",
 ]

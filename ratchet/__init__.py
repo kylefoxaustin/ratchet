@@ -27,10 +27,11 @@ The MODELS catalog and per-surface tier ladders are NOT owned by ratchet — eac
 surface composes those from the canonical registry and ships its own catalog.
 """
 
-__version__ = "0.2.7"
+__version__ = "0.3.0"
 
 # ─── Tiers ──────────────────────────────────────────────────────────
 from ratchet.tiers import (
+    IMX93_MEASURED,
     IMX95_MEASURED,
     MEMORY_UPGRADE_OPTIONS,
     NPU_HIGH,
@@ -41,8 +42,12 @@ from ratchet.tiers import (
     NPU_MID,
     RTX_5090_REFERENCE,
     TIERS,
+    CpuComplex,
     Hardware,
+    LatencyDistribution,
+    PerceptionAnchor,
     SiliconClass,
+    SolverConvergenceAnchor,
     hw_with_memory,
     make_custom_tier,
 )
@@ -71,16 +76,20 @@ from ratchet.precision import (
 
 # ─── Projection ─────────────────────────────────────────────────────
 from ratchet.projection import (
+    CpuLatencyProjection,
     DtypeMismatch,
     FeasibilityCheck,
     Projected,
     ProjectionResult,
+    SolverConvergenceProjection,
     WontFit,
     WorkloadPatternMultipliers,
     apply_workload_pattern,
     kv_cache_bytes_per_token,
     memory_feasibility,
+    project_frame_latency,
     project_llm,
+    project_solver_convergence,
 )
 
 # ─── Anchors ────────────────────────────────────────────────────────
@@ -122,9 +131,11 @@ __all__ = [
     # tiers
     "Hardware", "TIERS",
     "NPU_LOW_LP4", "NPU_LOW_LP5_32BIT", "NPU_LOW_LP5_64BIT", "NPU_LOW_LP5X",
-    "IMX95_MEASURED", "NPU_MID", "NPU_HIGH", "RTX_5090_REFERENCE",
+    "IMX93_MEASURED", "IMX95_MEASURED", "NPU_MID", "NPU_HIGH", "RTX_5090_REFERENCE",
     "hw_with_memory", "MEMORY_UPGRADE_OPTIONS",
     "make_custom_tier", "SiliconClass",
+    "CpuComplex", "PerceptionAnchor", "LatencyDistribution",
+    "SolverConvergenceAnchor",
     # precision
     "CapabilityLevel", "CapabilityInfo",
     "NEUTRON_INT8_ONLY_CAPABILITY", "NPU_FULL_DTYPE_CAPABILITY",
@@ -138,6 +149,8 @@ __all__ = [
     "project_llm", "Projected", "WontFit", "DtypeMismatch", "ProjectionResult",
     "memory_feasibility", "kv_cache_bytes_per_token", "FeasibilityCheck",
     "WorkloadPatternMultipliers", "apply_workload_pattern",
+    "project_frame_latency", "project_solver_convergence",
+    "CpuLatencyProjection", "SolverConvergenceProjection",
     # anchors
     "LLMAnchor", "CNNAnchor", "load_llm_anchor", "load_cnn_anchor",
     "overlay_llm_anchor", "hw_to_anchor_tier_precision",

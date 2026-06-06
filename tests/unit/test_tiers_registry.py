@@ -3,6 +3,7 @@ import pytest
 
 from ratchet.tiers.memory_overlay import MEMORY_UPGRADE_OPTIONS, hw_with_memory
 from ratchet.tiers.registry import (
+    IMX93_MEASURED,
     IMX95_MEASURED,
     NPU_HIGH,
     NPU_LOW_LP4,
@@ -16,8 +17,9 @@ from ratchet.tiers.registry import (
 
 
 class TestRegistryIntegrity:
-    def test_eight_tiers(self):
-        assert len(TIERS) == 8
+    def test_nine_tiers(self):
+        # 8 original + i.MX 93 (added v0.3.0 for drone-sizer, ADR 018).
+        assert len(TIERS) == 9
 
     def test_keyed_by_name(self):
         for name, hw in TIERS.items():
@@ -25,8 +27,8 @@ class TestRegistryIntegrity:
 
     def test_all_named_tiers_present(self):
         for hw in (NPU_LOW_LP4, NPU_LOW_LP5_32BIT, NPU_LOW_LP5_64BIT,
-                   NPU_LOW_LP5X, IMX95_MEASURED, NPU_MID, NPU_HIGH,
-                   RTX_5090_REFERENCE):
+                   NPU_LOW_LP5X, IMX93_MEASURED, IMX95_MEASURED, NPU_MID,
+                   NPU_HIGH, RTX_5090_REFERENCE):
             assert TIERS[hw.name] is hw
 
     def test_every_tier_has_calibration_source(self):
