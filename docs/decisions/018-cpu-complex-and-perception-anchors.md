@@ -57,6 +57,15 @@ carry that.
    datasheet (16-bit LPDDR4X-3733) and flagged `confidence='medium'` pending
    farm-board confirmation from orb_slam, rather than silently asserted as measured.
 
+**v0.3.1 update (2026-06-06):** orb_slam's live farm-board probe resolved the open
+item *and caught an error* — the i.MX 93 A55 runs at **1.7 GHz, not 2.0** (2.0 is
+the i.MX 95; 1.7 is the i.MX 93 datasheet max, pinned, no DVFS). Corrected
+`clock_ghz 2.0→1.7` and `tdp 3.0→2.0 W`. Clock + 2 GB capacity are now measured
+(`confidence='high'`); DRAM type/width/rate are SKU-pinned (DDR clock is
+SM/firmware-owned, not Linux-readable); TDP is datasheet. This is the flag-don't-
+assert discipline (Amendment-4/6) working as intended: the provisional value was
+labeled, then corrected by measurement rather than silently shipped as truth.
+
 ## Consequences
 
 - Non-breaking: `cpu` and `measured_perception` default None; the registry grows

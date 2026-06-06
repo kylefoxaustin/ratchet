@@ -157,8 +157,12 @@ Projection: `project_frame_latency`, `project_solver_convergence`,
 
 ## 6. Open items for the reviewer
 
-1. **i.MX 93 DRAM specs + TDP** — confirm/correct the farm-board values (amendment
-   2); I patch as v0.3.1. Until then they are datasheet, `confidence="medium"`.
+1. **i.MX 93 DRAM specs + TDP** — ✅ **RESOLVED in v0.3.1 (2026-06-06).** orb_slam's
+   live probe confirmed the values and **caught a clock error**: the i.MX 93 A55 is
+   **1.7 GHz, not 2.0** (2.0 is the i.MX 95). Patched `clock_ghz 2.0→1.7`,
+   `tdp 3.0→2.0 W`; clock + 2 GB capacity now measured (`confidence="high"`), DRAM
+   type/width/rate SKU-pinned, TDP datasheet. The flagged placeholder was corrected
+   by measurement rather than shipped silently — the discipline working.
 2. **Track 2 can start** — the drone-sizer surface session builds against v0.3.0:
    workload bundle, composition module (extractable), camera-ingest model,
    distributional verdict matrix, loud calibration display. It attaches the

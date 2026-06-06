@@ -37,11 +37,13 @@ _IMX95_PRODUCTION = CalibrationSource(
 _IMX93_FARM = CalibrationSource(
     method="measured",
     reference=(
-        "i.MX 93 EVK farm board (2×A55 @ 2.0 GHz), drone-sizer phase-0.1. "
-        "CPU complex is measured truth; DRAM specs are datasheet "
-        "(16-bit LPDDR4X-3733) pending farm-board confirmation from orb_slam"
+        "i.MX 93 11x11 EVK farm board, drone-sizer phase-0.1 (orb_slam probe "
+        "2026-06-06): CPU 2×A55 @ 1.70 GHz (clk_summary, pinned, no DVFS) and "
+        "2 GB capacity MEASURED live; DRAM LPDDR4X / 16-bit / 3733 MT/s is "
+        "SKU-pinned (DDR clock is SM/firmware-owned, not Linux-readable); "
+        "TDP ~2 W datasheet"
     ),
-    confidence="medium",
+    confidence="high",
 )
 
 
@@ -113,19 +115,22 @@ IMX93_MEASURED = Hardware(
     peak_tops_bf16=0.0, peak_tops_int8=2.0, peak_tops_fp8=0.0,
     mem_bandwidth_gbs=7.466, mem_capacity_gb=2.0,
     mem_bus_width_bits=16, mem_type="LPDDR4X", mem_data_rate_gtps=3.733,
-    cpu=CpuComplex(cores=2, microarch="A55", clock_ghz=2.0),
+    cpu=CpuComplex(cores=2, microarch="A55", clock_ghz=1.7),
     compute_efficiency=0.60, bandwidth_efficiency=0.70,
-    tdp_watts=3.0,
+    tdp_watts=2.0,
     tier_family="iMX93-A55-LP4X",
     compute_util_factor=0.19,
     llm_prefill_util_factor=0.10,
     capability_levels=NEUTRON_INT8_ONLY_CAPABILITY,
     calibration_source=_IMX93_FARM,
 )
-"""drone-sizer R4: the under-provisioned floor (2×A55 @ 2 GHz). NOT a recommended
-brain target — shown because it is real measured silicon and demonstrates what
-'too weak' looks like. CPU complex is measured; DRAM specs are datasheet pending
-farm-board confirmation (see _IMX93_FARM). Perception anchors attach surface-side."""
+"""drone-sizer R4: the under-provisioned floor (2×A55 @ 1.7 GHz — NOTE: 1.7, not
+the i.MX 95's 2.0; corrected in v0.3.1 from orb_slam's live probe). NOT a
+recommended brain target — shown because it is real measured silicon and
+demonstrates what 'too weak' looks like. CPU clock + capacity measured; DRAM
+type/width/rate SKU-pinned; TDP datasheet (see _IMX93_FARM). The 1.7→2.0 clock
+gap sharpens the spine finding: 93→95 is mostly clock (+17.6%), not the 2→6 core
+jump. Perception anchors attach surface-side."""
 
 
 IMX95_MEASURED = Hardware(

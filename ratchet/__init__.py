@@ -27,7 +27,7 @@ The MODELS catalog and per-surface tier ladders are NOT owned by ratchet — eac
 surface composes those from the canonical registry and ships its own catalog.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
 # ─── Tiers ──────────────────────────────────────────────────────────
 from ratchet.tiers import (

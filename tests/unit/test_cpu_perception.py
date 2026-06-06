@@ -37,7 +37,9 @@ _PROJECTED = CalibrationSource(method="projected", reference="test", confidence=
 # ── R1: CPU complex ──
 class TestR1CpuComplex:
     def test_drone_tiers_carry_cpu(self):
-        assert IMX93_MEASURED.cpu == CpuComplex(2, "A55", 2.0)
+        # i.MX 93 A55 is 1.7 GHz (not 2.0 — that's the i.MX 95); orb_slam live
+        # probe 2026-06-06, corrected in v0.3.1.
+        assert IMX93_MEASURED.cpu == CpuComplex(2, "A55", 1.7)
         assert IMX95_MEASURED.cpu == CpuComplex(6, "A55", 2.0)
         assert NPU_MID.cpu == CpuComplex(8, "A720", 2.0)
         assert NPU_HIGH.cpu == CpuComplex(8, "A720", 2.0)
@@ -55,7 +57,7 @@ class TestR1CpuComplex:
 # ── R4: i.MX 93 tier ──
 class TestR4Imx93:
     def test_imx93_silicon_facts(self):
-        assert IMX93_MEASURED.cpu == CpuComplex(2, "A55", 2.0)
+        assert IMX93_MEASURED.cpu == CpuComplex(2, "A55", 1.7)
         assert IMX93_MEASURED.mem_type == "LPDDR4X"
         # bandwidth == bus * rate / 8 (16-bit LPDDR4X-3733)
         assert IMX93_MEASURED.mem_bandwidth_gbs == pytest.approx(7.466, rel=1e-3)
